@@ -1,4 +1,5 @@
-import { Text, Center, Button, Input, Select, VStack, useToast } from 'native-base';
+import { Center, Text, VStack } from 'native-base';
+// import { useEffect, useRef } from 'react';
 import { Image } from 'react-native';
 
 export default function Inicio() {
@@ -6,15 +7,31 @@ export default function Inicio() {
   return (
     <VStack
       flex={1}
-      mx={12}
-      my={5}
-      justifyContent='center'
+      bgColor='#BDC5A3'
+      safeArea
     >
-      <Image
-        source={require('../../assets/nazare.jpeg')}
-        borderRadius={5}
-        style={{ width: '100%' }}
-      />
+      <VStack>
+        <Text
+          fontSize='5xl'
+          color='white'
+        >
+          Blonde Calculator
+        </Text>
+      </VStack>
+      <VStack
+        justifyContent='center'
+        alignItems='center'
+        bg='amber.100'
+        flex={1}
+      >
+        <Center>
+          <Image
+            source={require('../../assets/bbf.png')}
+            borderRadius={5}
+            style={{ width: 200, height: 200, borderRadius: 100 }}
+          />
+        </Center>
+      </VStack>
     </VStack>
   );
 }

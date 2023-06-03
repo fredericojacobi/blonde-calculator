@@ -15,7 +15,7 @@ export default function TabNavigation() {
     <Tab.Navigator
       initialRouteName="Início"
       screenOptions={{
-        tabBarActiveTintColor: '#e91e63',
+        tabBarActiveTintColor: '#e91e63'
       }}
     >
       <Tab.Screen
@@ -23,6 +23,7 @@ export default function TabNavigation() {
         component={Inicio}
         options={{
           tabBarLabel: 'Início',
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="home" color={color} size={size} />
           ),
@@ -53,9 +54,9 @@ export default function TabNavigation() {
         component={Historico}
         options={{
           tabBarLabel: 'Histórico',
-          headerRight: () => (
-            <MaterialCommunityIcons name='trash-can-outline' size={22} style={{ marginRight: 18 }} onPress={limparHistorico} />
-          ),
+          // headerRight: () => (
+          //   <MaterialCommunityIcons name='trash-can-outline' size={22} style={{ marginRight: 18 }} />
+          // ),
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="history" color={color} size={size} />
           ),
@@ -63,12 +64,4 @@ export default function TabNavigation() {
       />
     </Tab.Navigator>
   );
-
-  function limparHistorico(): void {
-    Alert.alert('Excluir', 'Deseja excluir o histórico de conversões?', [{ text: 'Ok', onPress: () => handleLimparHistorico() }, { text: 'Cancel' }]);
-  }
-
-  function handleLimparHistorico(): void {
-    removeData('historico');
-  }
 }

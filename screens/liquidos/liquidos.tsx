@@ -1,13 +1,15 @@
 import { Text, Center, Button, Input, Select, VStack, useToast } from 'native-base';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback } from 'react-native';
 import { EUnidadeLiquido } from '../../enums/EUnidadeLiquido';
 import { EUnidadePeso } from '../../enums/EUnidadePeso';
 import { converterLiquidoPara, formatarNumero } from '../../utils/funcoes/conversoes';
-import IResultadoCalculado from '../../interfaces/IResultadoCalculado';
-import { validar, calcular, definirMensagem } from './funcoes';
+import { IResultadoCalculado, IResultadoCalculadoLiquido } from '../../interfaces/IResultadoCalculado';
+import { validarLiquidos, definirMensagemLiquidos, calcularLiquidos } from './funcoes';
 import { retrieveData, storeData } from '../../utils/funcoes/localStorage';
 import { getFrase } from '../../utils/funcoes/frases';
+import { ETipo } from '../../enums/ETipo';
+import { showToast } from '../../utils/funcoes/toast';
 
 export default function Liquidos(): JSX.Element {
   //#region hooks
@@ -56,15 +58,21 @@ export default function Liquidos(): JSX.Element {
     await handleCalcular();
     setLoading(false);
   }
-  //#endregion
 
-  function showToast(message: any, duration = 3500): void {
-    toast.show({ description: message, duration: duration, size: '2/6' })
+  function onPressLimparCampos(): void {
+    setParaCada(0);
+    setVouFazer(0);
+    setNaReceitaEsta(0);
+    setVouFazer(0);
+    setVouFazerUnidade(EUnidadePeso.Nenhum);
+    setParaCadaUnidade(EUnidadePeso.Nenhum);
+    setNaReceitaEstaUnidade(EUnidadeLiquido.Nenhum);
   }
+  //#endregion
 
   //#region handles
   async function handleCalcular(): Promise<void> {
-    const obj: IResultadoCalculado = {
+    const obj: IResultadoCalculadoLiquido = {
       naReceitaEstaUnidade: naReceitaEstaUnidade,
       naReceitaEsta: naReceitaEsta,
       paraCadaUnidade: paraCadaUnidade,
@@ -73,123 +81,144 @@ export default function Liquidos(): JSX.Element {
       vouFazer: vouFazer,
     };
 
-    if (validar(obj)) {
-      const resultadoCalculado = calcular(obj);
-      const mensagemResultadoCalculado = definirMensagem(resultadoCalculado, naReceitaEstaUnidade, naReceitaEstaUnidade);
+    if (validarLiquidos(obj)) {
+      const resultadoCalculado = calcularLiquidos(obj);
+      const mensagemResultadoCalculado = definirMensagemLiquidos(resultadoCalculado, naReceitaEstaUnidade, naReceitaEstaUnidade);
       const objResultado: IResultadoCalculado = {
-        tipo: 'liquido',
-        litros: converterLiquidoPara(resultadoCalculado, naReceitaEstaUnidade, EUnidadeLiquido.Litro),
-        mililitros: converterLiquidoPara(resultadoCalculado, naReceitaEstaUnidade, EUnidadeLiquido.Mililitro),
+        tipo: ETipo.Liquido,
+        // litros: converterLiquidoPara(resultadoCalculado, naReceitaEstaUnidade, EUnidadeLiquido.Litro),
+        // mililitros: converterLiquidoPara(resultadoCalculado, naReceitaEstaUnidade, EUnidadeLiquido.Mililitro),
         naReceitaEsta: naReceitaEsta,
         naReceitaEstaUnidade: naReceitaEstaUnidade,
         paraCada: paraCada,
         paraCadaUnidade: paraCadaUnidade,
         vouFazer: vouFazer,
-        vouFazerUnidade: vouFazerUnidade
+        vouFazerUnidade: vouFazerUnidade,
+        resultado: mensagemResultadoCalculado,
       };
 
       const resultadosAnteriores = await retrieveData<Array<IResultadoCalculado>>('historico');
-      console.log(resultadosAnteriores, '########');
+
       storeData('historico', [...resultadosAnteriores, objResultado]);
 
       alert(mensagemResultadoCalculado);
-      showToast(getFrase());
+      showToast(getFrase(ETipo.Liquido), toast);
     } else {
       alert('Faltou preencher algum campo, loira', 'Erro');
     }
   }
-
   //#endregion
 
+  //#region functions
   const alert = (mensagem = '', title = 'Tu vai precisar de...') => Alert.alert(title, mensagem, [{ text: 'Ok' }]);
+  //#endregion
+
 
   return (
-    <ScrollView>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-          <VStack
-            flex={1}
-          >
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+    >
+      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+        <VStack
+          flex={1}
+        // justifyContent='center'
+        >
 
-            <VStack mb={5}>
-              <VStack mx={12} my={5}>
-                <Text fontSize='lg' mb={3}>
-                  Na receita está...
+          <VStack mb={5}>
+            <VStack mx={12} my={6}>
+              <Text fontSize='2xl' mb={3}>
+                Na receita está...
+              </Text>
+              <VStack>
+                <Input
+                  placeholder='Insira a quantidade'
+                  keyboardType='decimal-pad'
+                  onChangeText={onChangeNaReceitaEsta}
+                  value={naReceitaEsta === 0 ? '' : naReceitaEsta.toString()}
+                  w='xs'
+                  size='2xl'
+                  mb={2}
+                />
+
+                <Select onValueChange={onChangeNaReceitaEstaUnidade} placeholder='Selecione' w='xs' size='2xl' selectedValue={naReceitaEstaUnidade.toString()}>
+                  <Select.Item label='Litro' value={EUnidadeLiquido.Litro.toString()} />
+                  <Select.Item label='Mililitro' value={EUnidadeLiquido.Mililitro.toString()} />
+                </Select>
+
+                <Text fontSize='2xl' my={6}>
+                  Para cada...
                 </Text>
-                <VStack>
-                  <Input
-                    type='text'
-                    placeholder='Insira a quantidade'
-                    keyboardType='decimal-pad'
-                    onChangeText={onChangeNaReceitaEsta}
-                    w='xs'
-                    size='lg'
-                    mb={2}
-                  />
 
-                  <Select onValueChange={onChangeNaReceitaEstaUnidade} placeholder='Selecione' w='xs'>
-                    <Select.Item label='Litro' value={EUnidadeLiquido.Litro.toString()} />
-                    <Select.Item label='Mililitro' value={EUnidadeLiquido.Mililitro.toString()} />
-                  </Select>
+                <Input
+                  placeholder='Insira a quantidade'
+                  keyboardType='decimal-pad'
+                  onChangeText={onChangeParaCada}
+                  value={paraCada === 0 ? '' : paraCada.toString()}
+                  w='xs'
+                  size='2xl'
+                  mb={2}
+                />
 
-                  <Text fontSize='lg' my={3}>
-                    Para cada...
-                  </Text>
+                <Select onValueChange={onChangeParaCadaUnidade} placeholder='Selecione' w='xs' size='2xl' selectedValue={paraCadaUnidade.toString()}>
+                  <Select.Item label='Kilograma' value={EUnidadePeso.Kilograma.toString()} />
+                  <Select.Item label='Grama' value={EUnidadePeso.Grama.toString()} />
+                  <Select.Item label='Miligrama' value={EUnidadePeso.Miligrama.toString()} />
+                </Select>
 
-                  <Input
-                    placeholder='Insira a quantidade'
-                    keyboardType='decimal-pad'
-                    onChangeText={onChangeParaCada}
-                    w='xs'
-                    size='lg'
-                    mb={2}
-                  />
+              </VStack>
+              <VStack my={6}>
+                <Text fontSize='2xl' my={3}>
+                  E eu vou fazer...
+                </Text>
+                <Input
+                  placeholder='Insira a quantidade'
+                  keyboardType='decimal-pad'
+                  onChangeText={onChangeVouFazer}
+                  value={vouFazer === 0 ? '' : vouFazer.toString()}
+                  w='xs'
+                  size='2xl'
+                  mb={2}
+                />
 
-                  <Select onValueChange={onChangeParaCadaUnidade} placeholder='Selecione' w='xs'>
-                    <Select.Item label='Kilograma' value={EUnidadePeso.Kilograma.toString()} />
-                    <Select.Item label='Grama' value={EUnidadePeso.Grama.toString()} />
-                    <Select.Item label='Miligrama' value={EUnidadePeso.Miligrama.toString()} />
-                  </Select>
-
-                </VStack>
-                <VStack>
-                  <Text fontSize='lg' my={3}>
-                    E eu vou fazer...
-                  </Text>
-                  <Input
-                    placeholder='Insira a quantidade'
-                    keyboardType='decimal-pad'
-                    onChangeText={onChangeVouFazer}
-                    w='xs'
-                    size='lg'
-                    mb={2}
-                  />
-
-                  <Select onValueChange={onChangeVouFazerUnidade} placeholder='Selecione' w='xs'>
-                    <Select.Item label='Kilograma' value={EUnidadePeso.Kilograma.toString()} />
-                    <Select.Item label='Grama' value={EUnidadePeso.Grama.toString()} />
-                    <Select.Item label='Miligrama' value={EUnidadePeso.Miligrama.toString()} />
-                  </Select>
-                </VStack>
+                <Select onValueChange={onChangeVouFazerUnidade} placeholder='Selecione' w='xs' size='2xl' selectedValue={vouFazerUnidade.toString()}>
+                  <Select.Item label='Kilograma' value={EUnidadePeso.Kilograma.toString()} />
+                  <Select.Item label='Grama' value={EUnidadePeso.Grama.toString()} />
+                  <Select.Item label='Miligrama' value={EUnidadePeso.Miligrama.toString()} />
+                </Select>
               </VStack>
             </VStack>
-
-            <Center>
-              <Button
-                w='xs'
-                size='lg'
-                onPress={onPressCalcular}
-                disabled={loading}
-              >
-                Vai caralho
-              </Button>
-            </Center>
           </VStack>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </ScrollView>
+
+          <Center>
+            <Button
+              w='xs'
+              size='lg'
+              mb={5}
+              onPress={onPressCalcular}
+            >
+              <Text
+                fontSize='2xl'
+                color='white'
+              >
+                Calcula essa merda
+              </Text>
+            </Button>
+            <Button
+              w='xs'
+              size='lg'
+              onPress={onPressLimparCampos}
+            >
+              <Text
+                fontSize='2xl'
+                color='white'
+              >
+                Limpar
+              </Text>
+            </Button>
+          </Center>
+        </VStack>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }

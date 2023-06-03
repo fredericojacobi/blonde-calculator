@@ -1,10 +1,10 @@
 import { EUnidadeLiquido } from "../../enums/EUnidadeLiquido";
 import { EUnidadePeso } from "../../enums/EUnidadePeso";
-import IResultadoCalculado from "../../interfaces/IResultadoCalculado";
+import { IResultadoCalculadoLiquido } from "../../interfaces/IResultadoCalculado";
 import { converterLiquidoPara, converterPesoPara } from "../../utils/funcoes/conversoes";
 import { regraDeTres } from "../../utils/funcoes/regraDeTres";
 
-export function calcular(obj: IResultadoCalculado): number {
+export function calcularLiquidos(obj: IResultadoCalculadoLiquido): number {
   const { naReceitaEsta, naReceitaEstaUnidade, paraCada, paraCadaUnidade, vouFazer, vouFazerUnidade } = obj;
 
   let valorReceitaMililitro: number;
@@ -24,7 +24,7 @@ export function calcular(obj: IResultadoCalculado): number {
   return resultado;
 }
 
-export function definirMensagem(resultado: number, formatoOrigem: EUnidadeLiquido, formatoDesejado: EUnidadeLiquido): string {
+export function definirMensagemLiquidos(resultado: number, formatoOrigem: EUnidadeLiquido, formatoDesejado: EUnidadeLiquido): string {
   if (formatoOrigem === formatoDesejado) {
     return (
       `${resultado} ${EUnidadeLiquido[formatoDesejado]}(s)\nou\n${converterLiquidoPara(resultado, formatoOrigem, EUnidadeLiquido.Mililitro)} ${EUnidadeLiquido[EUnidadeLiquido.Mililitro]}(s)`
@@ -34,7 +34,7 @@ export function definirMensagem(resultado: number, formatoOrigem: EUnidadeLiquid
   return '';
 }
 
-export function validar(obj: IResultadoCalculado): boolean {
+export function validarLiquidos(obj: IResultadoCalculadoLiquido): boolean {
   const { naReceitaEsta, naReceitaEstaUnidade, paraCada, paraCadaUnidade, vouFazer, vouFazerUnidade } = obj;
 
   return Boolean(naReceitaEsta && paraCada && vouFazer && naReceitaEstaUnidade && vouFazerUnidade && paraCadaUnidade);
